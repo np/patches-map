@@ -9,7 +9,6 @@ packages:
 
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
 extra-deps:
-- edit-distance-vector-1.0.0.2
 - microlens-0.3.4.1
 - doctest-0.10.1
 
