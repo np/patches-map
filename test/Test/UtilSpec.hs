@@ -5,7 +5,7 @@ import           Data.Monoid
 import           Test.Hspec
 import           Test.QuickCheck
 
-import           Data.Patch.Internal
+import           Data.Map.Strict.Patch.Internal
 import           Test.Util
 
 spec :: Spec

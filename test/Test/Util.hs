@@ -3,38 +3,52 @@
 module Test.Util where
 
 import           Control.Applicative
-import           Data.Vector (Vector)
-import qualified Data.Vector as Vector
+import           Data.Map.Strict (Map, (!?))
+import qualified Data.Map.Strict as Map
 import           Test.QuickCheck
 
-import           Data.Patch
+import           Data.Map.Strict.Patch
 
-nonEmpty :: Vector a -> Bool
-nonEmpty = (>0) . Vector.length
+type Patch' = Patch Int Int
+type Doc = Map Int Int
 
-editsTo :: Arbitrary a => Vector a -> Gen (Edit a)
-editsTo v = do
-  i <- choose (0, Vector.length v -1)
-  c <- elements [const (Insert i), \o _ -> Delete i o, Replace i]
-  x <- arbitrary
-  return $ c (v Vector.! i) x
+(*?) :: Num a => Maybe a -> Maybe a -> Maybe a
+Nothing *? x       = x
+x       *? Nothing = x
+Just x  *? Just y  = Just (x * y)
 
-patchesFrom' :: (Eq a, Arbitrary a) => Vector a -> Gen (Patch a)
-patchesFrom' v | Vector.length v > 0 = fromList <$> listOf (editsTo v)
-patchesFrom' _ | otherwise           = fromList <$> listOf (Insert 0 <$> arbitrary)
+nonEmpty :: Map k v -> Bool
+nonEmpty = not . Map.null
 
-patchesFrom :: Vector Int -> Gen (Patch Int)
+editsTo :: (Num k, Ord k, Arbitrary k, Eq v, Arbitrary v) => Map k v -> Gen (Edit k v)
+editsTo m = gen `suchThatMap` id
+
+  where
+    ks = Map.keys m
+    gen = do
+      k <- arbKey
+      mv <- arbitrary
+      return $ replace k (m !? k) mv
+    arbKey
+      | null ks   = arbitrary
+      | otherwise = do
+          -- not sure if this is the right probability distribution...
+          b <- arbitrary
+          if b then elements ks
+               else arbitrary
+
+patchesFrom' :: (Num k, Ord k, Arbitrary k, Eq v, Arbitrary v) => Map k v -> Gen (Patch k v)
+patchesFrom' m = fromList <$> listOf (editsTo m)
+
+patchesFrom :: Doc -> Gen Patch'
 patchesFrom = patchesFrom'
 
-divergingPatchesFrom :: Vector Int -> Gen (Patch Int, Patch Int)
+divergingPatchesFrom :: Doc -> Gen (Patch', Patch')
 divergingPatchesFrom v = (,) <$> patchesFrom v <*> patchesFrom v
 
-historyFrom :: Vector Int -> Int -> Gen [Patch Int]
+historyFrom :: Doc -> Int -> Gen [Patch']
 historyFrom _ 0 = return []
 historyFrom d m = do
   p <- patchesFrom d
   r <- historyFrom (apply p d) $ m - 1
   return (p:r)
-
-instance Arbitrary a => Arbitrary (Vector a) where
-  arbitrary = Vector.fromList <$> listOf arbitrary

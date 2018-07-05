@@ -1,11 +1,10 @@
--- | For gory implementation details, please see "Data.Patch.Internal"
-module Data.Patch
+-- | For the implementation details, please see "Data.Patch.Internal"
+module Data.Map.Strict.Patch
        (
          -- * Patches
-         Patch
+         Patch (..)
        , toList
        , fromList
-       , unsafeFromList
        , inverse
        , composable
          -- * Documents
@@ -19,15 +18,16 @@ module Data.Patch
        , ours
        , theirs
          -- * Edits
-       , Edit (..)
+       , Edit
+       , EditV
+       , replace
+       , replaceV
        , index
        , old
        , new
-         -- * Viewing Patches and Hunks
-       , Hunks
-       , HunkStatus (..)
-       , hunks
+       , validEditV
+       , validEdit
        )
        where
 
-import Data.Patch.Internal
+import Data.Map.Strict.Patch.Internal

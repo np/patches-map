@@ -1,16 +1,16 @@
 
-module Data.Patch.InternalSpec where
+module Data.Map.Strict.Patch.InternalSpec where
 
 import           Data.Monoid
 import           Test.Hspec
 import           Test.QuickCheck
 
-import           Data.Patch.Internal
-import           Test.Util ()
+import           Data.Map.Strict.Patch.Internal
+import           Test.Util (Patch')
 
 spec :: Spec
 spec = do
   describe "applicable" $ do
     it "mempty is always applicable" $ do
       property $ \d ->
-        applicable (mempty :: Patch Int) d
+        applicable (mempty :: Patch') d
