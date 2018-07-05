@@ -3,7 +3,7 @@
 
 * Acknowledgements
 
-This library has been created as a fork of the library [[https://github.com/np/patches-map]] by Liam O'Connor.
+This library has been created as a fork of the library [[https://github.com/liamoc/patches-vector]] by Liam O'Connor.
 His work made the creation of this library for maps a lot simpler. Thanks!
 
 * Patches for Maps
