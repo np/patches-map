@@ -1,18 +1,18 @@
 
-[[https://travis-ci.org/liamoc/patches-vector][file:https://travis-ci.org/liamoc/patches-vector.svg]] [[http://hackage.haskell.org/package/patches-vector][file:https://img.shields.io/hackage/v/patches-vector.svg]] [[http://packdeps.haskellers.com/reverse/patches-vector][file:https://img.shields.io/hackage-deps/v/patches-vector.svg]] [[http://haskell.org][file:https://img.shields.io/badge/language-Haskell-blue.svg]] [[https://github.com/liamoc/patches-vector/blob/master/LICENSE][file:http://img.shields.io/badge/license-BSD3-brightgreen.svg]]
+[[https://travis-ci.org/np/patches-map][file:https://travis-ci.org/np/patches-map.svg]] [[http://hackage.haskell.org/package/patches-map][file:https://img.shields.io/hackage/v/patches-map.svg]] [[http://packdeps.haskellers.com/reverse/patches-map][file:https://img.shields.io/hackage-deps/v/patches-map.svg]] [[http://haskell.org][file:https://img.shields.io/badge/language-Haskell-blue.svg]] [[https://github.com/np/patches-map/blob/master/LICENSE][file:http://img.shields.io/badge/license-BSD3-brightgreen.svg]]
 
 * Patches for Vectors
 
-A /patch/ is a collection of modifications (/edits/) to be made to a sequence of elements. Commonly
+A /patch/ is a collection of modifications (/edits/) to be made to a map from keys to values. Commonly
 found in version control systems, patches are also a simple example of a /groupoid/, supporting (partial)
 composition and inversion.
-                     
-This library provides a pleasant interface for working with patches to vectors with any type of element.
-It includes patch composition, inversion, and application, as well as a way to compute a patch between
-two vectors using the Wagner-Fischer algorithm.
 
-It also includes a simple implementation of the [[https://en.wikipedia.org/wiki/Operational_transformation][operational transformation]] (OT) 
-function to resolve diverging patches from the same document. This allows for reasonably painless 
+This library provides a pleasant interface for working with patches to maps with any type of element.
+It includes patch composition, inversion, and application, as well as a way to compute a patch between
+two maps.
+
+It also includes a simple implementation of the [[https://en.wikipedia.org/wiki/Operational_transformation][operational transformation]] (OT)
+function to resolve diverging patches from the same document. This allows for reasonably painless
 implementation of merge functions, as well as many applications in distributed editing of documents. This
 operation also has an interpretation in terms of groupoids, where the transform function is the [[https://en.wikipedia.org/wiki/Pushout_(category_theory)][pushout]] of two
 diverging patches.
@@ -21,42 +21,31 @@ This library is extensively covered by a comprehensive suite of
 QuickCheck properties, which are written into the documentation and
 run with ~doctest~.
 
-The actual package only depends on ~base~, ~microlens~, ~vector~ and
-a small library for doing Wagner-Fischer, [[https://github.com/thsutton/edit-distance-vector][thsutton/edit-distance-vector]].
+The actual package only depends on ~base~, ~microlens~, and ~containers~.
 
 It is released under the BSD3 license.
 
 ** Building, Installing
 
-~patches-vector~ is released on Hackage and is available in the usual way:
+~patches-map~ is released on Hackage and is available in the usual way:
 
 #+BEGIN_EXAMPLE
   $ cabal update
-  $ cabal install patches-vector
+  $ cabal install patches-map
 #+END_EXAMPLE
 
 You can also use ~stack~ if you prefer:
 
 #+BEGIN_EXAMPLE
-  $ stack install patches-vector
+  $ stack install patches-map
 #+END_EXAMPLE
 
 A variety of ~stack-*.yaml~ files are provided in this repository for various LTS snapshots.
 
 ** Using
 
-The full Haddock documentation is available [[http://hackage.haskell.org/package/patches-vector][on Hackage]]. Mostly, construct patches using ~fromList~ or ~diff~, compose them with the ~Monoid~ instance, invert them with ~inverse~, 
-and apply them to a vector with ~apply~.
+The full Haddock documentation is available [[http://hackage.haskell.org/package/patches-map][on Hackage]]. Mostly, construct patches using ~fromList~ or ~diff~, compose them with the ~Monoid~ instance, invert them with ~inverse~,
+and apply them to a map with ~apply~.
 
 The ~transform~ function can be used to resolve diverging patches, and ~transformWith~ lets you select a merging strategy, such as ~ours~ or ~theirs~, rather than the default
 ~mappend~. See the Haddock documentation for more information.
-
-The ~hunks~ function can be used with a patch and a vector to provide a list of change hunks, that are convenient for other tools or for displaying to the user.
-
-** Future work
-
-- More elaborate merge strategies that allow you to emulate insert/delete style patches.
-
-** Other notes
-
-This library is designed to be used with my ~composition-tree~ library, which, along with this library gives you a basic version control system for vectors. Pretty neat!
