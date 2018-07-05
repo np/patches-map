@@ -1,7 +1,12 @@
 
 [[https://travis-ci.org/np/patches-map][file:https://travis-ci.org/np/patches-map.svg]] [[http://hackage.haskell.org/package/patches-map][file:https://img.shields.io/hackage/v/patches-map.svg]] [[http://packdeps.haskellers.com/reverse/patches-map][file:https://img.shields.io/hackage-deps/v/patches-map.svg]] [[http://haskell.org][file:https://img.shields.io/badge/language-Haskell-blue.svg]] [[https://github.com/np/patches-map/blob/master/LICENSE][file:http://img.shields.io/badge/license-BSD3-brightgreen.svg]]
 
-* Patches for Vectors
+* Acknowledgements
+
+This library has been created as a fork of the library [[https://github.com/np/patches-map]] by Liam O'Connor.
+His work made the creation of this library for maps a lot simpler. Thanks!
+
+* Patches for Maps
 
 A /patch/ is a collection of modifications (/edits/) to be made to a map from keys to values. Commonly
 found in version control systems, patches are also a simple example of a /groupoid/, supporting (partial)
