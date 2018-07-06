@@ -71,3 +71,16 @@ test-suite             spec-patches-map
                      , containers
                      , hspec >= 2.1 && < 2.5
   default-language:    Haskell2010
+
+test-suite             example-patches-map
+  type: exitcode-stdio-1.0
+  main-is: example.hs
+  hs-source-dirs: example, test
+  other-modules:       Test.Util
+  build-depends:       base >= 4.7 && < 5
+                     , QuickCheck >= 2.7 && < 2.11
+                     , patches-map
+                     , containers
+                     , lens
+                     , text
+  default-language:    Haskell2010

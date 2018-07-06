@@ -174,17 +174,27 @@ composable (Patch p) (Patch q) =
 --
 -- prop> apply mempty d == d
 --
-apply :: (Ord k, Eq v) => Patch k v -> Map k v -> Map k v
+-- TODO: restore this version which does not require Show
+-- apply :: (Ord k, Eq v) => Patch k v -> Map k v -> Map k v
+apply :: (Show k, Show v, Ord k, Eq v) => Patch k v -> Map k v -> Map k v
 apply p@(Patch em) im =
   Map.merge Map.preserveMissing (Map.mapMaybeMissing f)
             (Map.zipWithMaybeMatched g) im em
   where
     f _ (ReplaceV mo mn)
       | Nothing <- mo = mn
-      | otherwise     = error "Data.Map.Patch.Internal.apply: invalid patch (Nothing)"
+      | otherwise     = err "Nothing" mo
     g _ v (ReplaceV mo mn)
       | mo == Just v  = mn
-      | otherwise     = error "Data.Map.Patch.Internal.apply: invalid patch (Just)"
+      | otherwise     = err (show $ Just v) mo
+    err expected found =
+      error $ unlines
+        [ "Data.Map.Patch.Internal.apply: invalid patch"
+        , "Expected: " <> expected
+        , "Found:    " <> show found
+        , "Patch:    " <> show em
+        , "Document: " <> show im
+        ]
 
 -- | Apply a patch to a document without checking that the patch is valid
 -- for the given document.

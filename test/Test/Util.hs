@@ -20,7 +20,7 @@ Just x  *? Just y  = Just (x * y)
 nonEmpty :: Map k v -> Bool
 nonEmpty = not . Map.null
 
-editsTo :: (Num k, Ord k, Arbitrary k, Eq v, Arbitrary v) => Map k v -> Gen (Edit k v)
+editsTo :: (Ord k, Arbitrary k, Eq v, Arbitrary v) => Map k v -> Gen (Edit k v)
 editsTo m = gen `suchThatMap` id
 
   where
@@ -37,7 +37,7 @@ editsTo m = gen `suchThatMap` id
           if b then elements ks
                else arbitrary
 
-patchesFrom' :: (Num k, Ord k, Arbitrary k, Eq v, Arbitrary v) => Map k v -> Gen (Patch k v)
+patchesFrom' :: (Ord k, Arbitrary k, Eq v, Arbitrary v) => Map k v -> Gen (Patch k v)
 patchesFrom' m = fromList <$> listOf (editsTo m)
 
 patchesFrom :: Doc -> Gen Patch'
