@@ -58,7 +58,7 @@ data Repo k v = Repo
   { _r_version :: Version
   , _r_map     :: Map k v
   , _r_history :: [Patch k v]
-    -- ^ last patch comes first
+    -- ^ first patch in the list is the most recent
   }
 
 type ConflictResolution a = Maybe a -> Maybe a -> Maybe a
