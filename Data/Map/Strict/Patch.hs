@@ -5,29 +5,32 @@ module Data.Map.Strict.Patch
          Patch (..)
        , toList
        , fromList
-       , inverse
-       , composable
+
          -- * Documents
-       , apply
-       , applicable
        , diff
+
+         -- * Re-exports
+
+         -- ** Inverse and composition
+       , invert
+       , composable
+
+         -- ** Apply patches
+       , act
+       , applicable
+
          -- ** Transformations and merges
        , transformWith
          -- *** Conflict strategies
        , transform
        , ours
        , theirs
-         -- * Edits
-       , Edit
-       , EditV
-       , replace
-       , replaceV
-       , index
+         -- ** Replace
+       , Replace
        , old
        , new
-       , validEditV
-       , validEdit
        )
        where
 
+import Data.Patch.Class
 import Data.Map.Strict.Patch.Internal
