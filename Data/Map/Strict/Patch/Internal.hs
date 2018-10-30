@@ -8,6 +8,7 @@ import Data.Foldable
 import Data.Maybe
 import Data.Monoid
 import Data.Ord
+import Data.Semigroup (Semigroup)
 import qualified Data.List as List
 import Lens.Micro
 import Control.Applicative
@@ -140,6 +141,8 @@ validEdit = validEditV . snd
 -- This keeps only one edit per key.
 fromList :: (Ord k, Eq v) => [Edit k v] -> Patch k v
 fromList = Patch . Map.fromList . filter validEdit
+
+instance (Ord k, Eq v) => Semigroup (Patch k v)
 
 instance (Ord k, Eq v) => Monoid (Patch k v) where
   mempty = Patch Map.empty
