@@ -32,9 +32,11 @@ library
   exposed-modules:     Data.Map.Strict.Patch
                      , Data.Map.Strict.Patch.Internal
   build-depends:       base >=4.7 && <5
+                     , groups
                      , containers
                      , microlens >= 0.2 && < 0.5
                      , patches-class
+                     , validity
   default-language:    Haskell2010
 
 test-suite             doctest-patches-map

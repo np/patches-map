@@ -121,13 +121,9 @@ instance (Ord k, Monoid pv, Eq pv, Transformable pv) => Transformable (Patch k p
     = Patch $ Map.merge Map.dropMissing Map.preserveMissing
                         (zipWithNonMemptyMatched $ transformSnd . conflict) p q
 
-  transformable (Patch p) (Patch q) = getAll $ fold2 f p q
-    where
-      f _ pv qv = All (transformable pv qv)
+  transformable (Patch p) (Patch q) = fold2 (const transformable) p q
 
-  conflicts (Patch p) (Patch q) = getSum $ fold2 f p q
-    where
-      f _ pv qv = Sum (conflicts pv qv)
+  conflicts (Patch p) (Patch q) = fold2 (const conflicts) p q
 
 -- | Compute the difference between two maps.
 --
