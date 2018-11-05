@@ -79,14 +79,25 @@ toList (Patch m) = Map.toList m
 
 -- | Convert a list of edits to a patch.
 -- This keeps only one edit per key.
-fromList :: (Ord k, Validity pv) => [(k, pv)] -> Patch k pv
-fromList = Patch . Map.fromList . filter (isValid . snd)
+-- Eq and Monoid are used to discard empty 'pv' patches.
+-- Note that it wouldn't make sense to compose multiple value patches ('pv')
+-- since all the given value patches are supposed to have a common domain.
+fromList :: (Show k, Ord k, Validity pv, Monoid pv, Eq pv)
+         => [(k, pv)] -> (Patch k pv, Validation)
+fromList xs = (p, v)
+  where
+    p = Patch . Map.fromList $ filter ((/= mempty) . snd) xs
+    v = decorateList xs (validate . snd)
+     <> mconcat [ invalid $ "Duplicate key: " <> show k | k <- dups ]
+    dups = Map.keys . Map.filter (> Sum 1) $ Map.fromListWith (<>) [ (x, Sum 1) | (x, _) <- xs ]
+
+instance (Ord k, Eq pv, Monoid pv) => Semigroup (Patch k pv) where
+  Patch p <> Patch q =
+    Patch $ Map.merge Map.preserveMissing Map.preserveMissing
+                      (zipWithNonMemptyMatched (const (<>))) p q
 
 instance (Ord k, Eq pv, Monoid pv) => Monoid (Patch k pv) where
   mempty = Patch Map.empty
-  mappend (Patch p) (Patch q) =
-    Patch $ Map.merge Map.preserveMissing Map.preserveMissing
-                      (zipWithNonMemptyMatched (const mappend)) p q
 
 instance (Ord k, Composable pv, Eq pv) => Composable (Patch k pv) where
   -- | Returns true if a patch can be validly composed with another.

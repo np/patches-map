@@ -17,9 +17,9 @@ gen i = let
 
 main :: IO ()
 main =
-  defaultMain [ bgroup "apply" [ bench "1" $ nf (uncurry apply) (gen 500)
-                               , bench "2" $ nf (uncurry apply) (gen 1000)
-                               , bench "3" $ nf (uncurry apply) (gen 2000)
-                               , bench "4" $ nf (uncurry apply) (gen 4000)
+  defaultMain [ bgroup "apply" [ bench "1" $ nf (uncurry act) (gen 500)
+                               , bench "2" $ nf (uncurry act) (gen 1000)
+                               , bench "3" $ nf (uncurry act) (gen 2000)
+                               , bench "4" $ nf (uncurry act) (gen 4000)
                                ]
               ]

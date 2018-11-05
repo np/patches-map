@@ -5,7 +5,8 @@ import Control.Lens hiding (elements)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
-import Data.Map.Strict.Patch (Patch, apply, transformWith)
+import Data.Patch.Class (Replace, Patched, ConflictResolution)
+import Data.Map.Strict.Patch (Patch, act, transformWith)
 import qualified Data.Map as Map
 import Data.Map (Map)
 import qualified Data.Set as Set
@@ -35,7 +36,7 @@ makeLenses ''TermInfo
 
 type TermList = Map Label TermInfo
 
-type TermListPatch = Patch Label TermInfo
+type TermListPatch = Patch Label (Replace (Maybe TermInfo))
 
 type Version = Int
 
@@ -51,24 +52,22 @@ data ClientData = ClientData
 
 data API k v = API
   { _get :: IO (Versioned (Map k v))
-  , _put :: Versioned (Patch k v) -> IO (Versioned (Patch k v))
+  , _put :: Versioned (Patch k (Replace (Maybe v))) -> IO (Versioned (Patch k (Replace (Maybe v))))
   }
 
 data Repo k v = Repo
   { _r_version :: Version
   , _r_map     :: Map k v
-  , _r_history :: [Patch k v]
+  , _r_history :: [Patch k (Replace (Maybe v))]
     -- ^ first patch in the list is the most recent
   }
 
-type ConflictResolution a = Maybe a -> Maybe a -> Maybe a
-
 -- Left biased
-conflict :: ConflictResolution TermInfo
-conflict Nothing  Nothing  = error "conflict: should not happen"
-conflict Nothing  (Just y) = Just $ y & ti_conflicts +~ 1
-conflict (Just x) Nothing  = Just $ x & ti_conflicts +~ 1
-conflict (Just x) (Just y) = Just $ TermInfo
+conflict :: ConflictResolution (Patch k (Replace (Maybe TermInfo)))
+conflict _ Nothing  Nothing  = error "conflict: should not happen"
+conflict _ Nothing  (Just y) = Just $ y & ti_conflicts +~ 1
+conflict _ (Just x) Nothing  = Just $ x & ti_conflicts +~ 1
+conflict _ (Just x) (Just y) = Just $ TermInfo
   { _ti_cats  = Map.union (_ti_cats x) (_ti_cats y)
   , _ti_forms = Set.union (_ti_forms x) (_ti_forms y)
   , _ti_conflicts = _ti_conflicts x + _ti_conflicts y + 1
@@ -86,7 +85,7 @@ serve = do
          v' = _r_version r + 1
          r' = Repo
            { _r_version = v'
-           , _r_map     = apply p' $ _r_map r
+           , _r_map     = act p' $ _r_map r
            , _r_history = p' : _r_history r
            }
        pure (r', Versioned v' q')
@@ -116,12 +115,12 @@ arbClient api (ClientData name uid) = do
       log "termlist/old" ts0
       patch <- generate . scale (`div` 10) $ patchesFrom' ts0
       log "patch/cur" patch
-      let ts1 = apply patch ts0
+      let ts1 = act patch ts0
       log "termlist/cur" ts1
       Versioned v' patch' <- _put api (Versioned v patch)
       log "version/new" v'
       log "patch/new" patch'
-      let ts2 = apply patch' ts1
+      let ts2 = act patch' ts1
       log "termlist/new" ts2
       delay <- generate $ elements [1..3]
       log "delay" delay
