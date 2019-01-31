@@ -2,7 +2,7 @@
 module Data.Map.Strict.Patch
        (
          -- * Patches
-         Patch (..)
+         PatchMap
        , toList
        , fromList
        , fromMap
