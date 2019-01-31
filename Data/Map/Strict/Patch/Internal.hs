@@ -139,6 +139,12 @@ instance (Ord k, Applicable pv (Maybe v)) => Applicable (PatchMap k pv) (Map k v
     where
       f k pv = applicable pv (m !? k)
 
+instance (Ord k, Applicable pv (Maybe v))
+      => Applicable (PatchMap k pv) (Maybe (Map k v)) where
+  applicable (PatchMap p) Nothing =
+    check (Map.null p) "PatchMap should be empty here"
+  applicable p (Just m) = applicable p m
+
 instance (Ord k, Action pv (Maybe v))
       => Action (PatchMap k pv) (Map k v) where
   -- | Apply a patch to a document without checking that the patch is valid
@@ -147,6 +153,10 @@ instance (Ord k, Action pv (Maybe v))
   act (PatchMap em) im =
     Map.merge Map.preserveMissing (Map.mapMaybeMissing (const (`act` Nothing)))
               (Map.zipWithMaybeMatched (\_ v pv -> pv `act` Just v)) im em
+
+instance (Ord k, Action pv (Maybe v))
+      => Action (PatchMap k pv) (Maybe (Map k v)) where
+  act = fmap . act
 
 instance (Ord k, Monoid pv, Eq pv, Transformable pv) => Transformable (PatchMap k pv) where
   -- | This is the internal version @transformWith@ which computes only the
