@@ -5,6 +5,8 @@ module Data.Map.Strict.Patch
          Patch (..)
        , toList
        , fromList
+       , fromMap
+       , singleton
 
          -- * Documents
        , diff

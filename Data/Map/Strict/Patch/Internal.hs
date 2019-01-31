@@ -1,10 +1,13 @@
 {-# LANGUAGE BangPatterns          #-}
+{-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
 -- | For day-to-day use, please see "Data.Map.Strict.Patch"
 module Data.Map.Strict.Patch.Internal where
+import Data.Aeson
 import Data.Group
 import Data.Patch.Class
 import Data.Map.Strict (Map, (!?))
@@ -13,6 +16,7 @@ import qualified Data.Map.Merge.Strict as Map
 import Data.Foldable
 import Data.Monoid
 import Data.Validity
+import GHC.Generics (Generic)
 -- $setup
 -- >>> import Test.QuickCheck
 -- >>> import Test.Util
@@ -47,7 +51,21 @@ import Data.Validity
 -- prop> forAll (patchesFrom d) $ \a -> mempty <> a == a
 --
 -- prop> forAll (historyFrom d 3) $ \[a, b, c] -> act (a <> (b <> c)) d == act ((a <> b) <> c) d
-newtype Patch k pv = Patch (Map k pv) deriving (Eq, Read, Show)
+newtype Patch k pv = Patch (Map k pv) deriving (Eq, Read, Show, Generic, ToJSON)
+
+instance (FromJSONKey k, Ord k, FromJSON pv, Monoid pv, Eq pv) =>
+         FromJSON (Patch k pv) where
+  parseJSON = fmap fromMap . parseJSON
+
+newtype NotMempty a = NotMempty a
+
+instance (Validity a, Monoid a, Eq a) => Validity (NotMempty a) where
+  validate (NotMempty a) | a == mempty = invalid "mempty is invalid"
+                         | otherwise   = validate a
+
+instance (Validity pv, Monoid pv, Eq pv) => Validity (Patch k pv) where
+  validate (Patch pm) =
+    foldMap (delve "Data.Map.Strict.Patch: The sub parts of a patch-map" . NotMempty) pm
 
 type instance ConflictResolution (Patch k pv) = k -> ConflictResolution pv
 
@@ -77,6 +95,11 @@ instance (Ord k, Eq v, Group v) => Group (Patch k v) where
 toList :: Patch k pv -> [(k, pv)]
 toList (Patch m) = Map.toList m
 
+-- | Convert a map of edits to a patch.
+-- Eq and Monoid are used to discard empty 'pv' patches.
+fromMap :: (Monoid pv, Eq pv) => Map k pv -> Patch k pv
+fromMap = Patch . Map.filter (/= mempty)
+
 -- | Convert a list of edits to a patch.
 -- This keeps only one edit per key.
 -- Eq and Monoid are used to discard empty 'pv' patches.
@@ -84,12 +107,17 @@ toList (Patch m) = Map.toList m
 -- since all the given value patches are supposed to have a common domain.
 fromList :: (Show k, Ord k, Validity pv, Monoid pv, Eq pv)
          => [(k, pv)] -> (Patch k pv, Validation)
-fromList xs = (p, v)
+fromList xs = (fromMap $ Map.fromList xs, v)
   where
-    p = Patch . Map.fromList $ filter ((/= mempty) . snd) xs
     v = decorateList xs (validate . snd)
      <> mconcat [ invalid $ "Duplicate key: " <> show k | k <- dups ]
     dups = Map.keys . Map.filter (> Sum 1) $ Map.fromListWith (<>) [ (x, Sum 1) | (x, _) <- xs ]
+
+singleton :: (Ord k, Validity pv, Monoid pv, Eq pv)
+          => k -> pv -> (Patch k pv, Validation)
+singleton k pv
+  | pv == mempty = mempty
+  | otherwise    = (Patch $ Map.singleton k pv, validate pv)
 
 instance (Ord k, Eq pv, Monoid pv) => Semigroup (Patch k pv) where
   Patch p <> Patch q =
