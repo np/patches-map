@@ -176,23 +176,17 @@ instance (Ord k, Monoid pv, Eq pv, Transformable pv) => Transformable (PatchMap 
   conflicts (PatchMap p) (PatchMap q) = fold2 (const conflicts) p q
 
 -- | Compute the difference between two maps.
---
--- prop> act (diff d e) d == e
---
--- prop> diff d d == mempty
---
--- prop> act (diff d e) d == act (invert (diff e d)) d
---
--- prop> act (diff a b <> diff b c) a == act (diff a c) a
---
--- prop> applicable (diff a b) a
-diff :: (Ord k, Eq v) => Map k v -> Map k v -> PatchMap k (Replace (Maybe v))
-diff v1 v2 = PatchMap $ d v1 v2
-  where
-    d = Map.merge (Map.mapMissing f) (Map.mapMissing g) (Map.zipWithMaybeMatched h)
-    f _ o   = replace (Just o) Nothing
-    g _   n = replace Nothing  (Just n)
-    h _ o n = nonMempty $ replace (Just o) (Just n)
+-- Example:
+--   diffMap :: (Ord k, Eq v) => Map k v -> Map k v -> PatchMap k (Replace (Maybe v))
+--   diffMap = diff
+instance (Ord k, Eq p, Monoid p, Diff (Maybe v) p)
+      => Diff (Map k v) (PatchMap k p) where
+  diff m1 m2 =
+      PatchMap $ Map.merge (Map.mapMissing f) (Map.mapMissing g) (Map.zipWithMaybeMatched h) m1 m2
+    where
+      f _ o   = diff (Just o) Nothing
+      g _   n = diff Nothing  (Just n)
+      h _ o n = nonMempty $ diff (Just o) (Just n)
 
 zipWithNonMemptyMatched :: (Applicative f, Monoid z, Eq z)
                         => (k -> x -> y -> z) -> Map.WhenMatched f k x y z
