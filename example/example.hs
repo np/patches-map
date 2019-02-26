@@ -6,7 +6,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Data.Patch.Class (Replace, Patched, ConflictResolution)
-import Data.Map.Strict.Patch (Patch, act, transformWith)
+import Data.Map.Strict.Patch (PatchMap, act, transformWith)
 import qualified Data.Map as Map
 import Data.Map (Map)
 import qualified Data.Set as Set
@@ -36,7 +36,7 @@ makeLenses ''TermInfo
 
 type TermList = Map Label TermInfo
 
-type TermListPatch = Patch Label (Replace (Maybe TermInfo))
+type TermListPatch = PatchMap Label (Replace (Maybe TermInfo))
 
 type Version = Int
 
@@ -52,18 +52,18 @@ data ClientData = ClientData
 
 data API k v = API
   { _get :: IO (Versioned (Map k v))
-  , _put :: Versioned (Patch k (Replace (Maybe v))) -> IO (Versioned (Patch k (Replace (Maybe v))))
+  , _put :: Versioned (PatchMap k (Replace (Maybe v))) -> IO (Versioned (PatchMap k (Replace (Maybe v))))
   }
 
 data Repo k v = Repo
   { _r_version :: Version
   , _r_map     :: Map k v
-  , _r_history :: [Patch k (Replace (Maybe v))]
+  , _r_history :: [PatchMap k (Replace (Maybe v))]
     -- ^ first patch in the list is the most recent
   }
 
 -- Left biased
-conflict :: ConflictResolution (Patch k (Replace (Maybe TermInfo)))
+conflict :: ConflictResolution (PatchMap k (Replace (Maybe TermInfo)))
 conflict _ Nothing  Nothing  = error "conflict: should not happen"
 conflict _ Nothing  (Just y) = Just $ y & ti_conflicts +~ 1
 conflict _ (Just x) Nothing  = Just $ x & ti_conflicts +~ 1
