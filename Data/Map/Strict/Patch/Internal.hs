@@ -13,6 +13,7 @@ import Data.Patch.Class
 import Data.Map.Strict (Map, (!?))
 import qualified Data.Map.Strict as Map
 import qualified Data.Map.Merge.Strict as Map
+import Data.Maybe
 import Data.Foldable
 import Data.Monoid
 import Data.Validity
@@ -141,9 +142,9 @@ instance (Ord k, Applicable pv (Maybe v)) => Applicable (PatchMap k pv) (Map k v
 
 instance (Ord k, Applicable pv (Maybe v))
       => Applicable (PatchMap k pv) (Maybe (Map k v)) where
-  applicable (PatchMap p) Nothing =
-    check (Map.null p) "PatchMap should be empty here"
-  applicable p (Just m) = applicable p m
+  -- | The patch is checked on the inner map.
+  --   Nothing is equivalent to an empty map.
+  applicable p m = applicable p $ fromMaybe mempty m
 
 instance (Ord k, Action pv (Maybe v))
       => Action (PatchMap k pv) (Map k v) where
@@ -151,12 +152,22 @@ instance (Ord k, Action pv (Maybe v))
   -- for the given document.
   -- unsafeApply :: (Ord k, Eq v) => PatchMap k v -> Map k v -> Map k v
   act (PatchMap em) im =
-    Map.merge Map.preserveMissing (Map.mapMaybeMissing (const (`act` Nothing)))
-              (Map.zipWithMaybeMatched (\_ v pv -> pv `act` Just v)) im em
+    Map.merge
+      -- Bindings not affected by the patch are unchanged.
+      Map.preserveMissing
+      -- Bindings in the patch but not in the data are computed
+      -- using the inner patch on `Nothing`.
+      (Map.mapMaybeMissing (const (`act` Nothing)))
+      -- When both bindings are present use the inner patch
+      -- on `Just` the inner data.
+      (Map.zipWithMaybeMatched (\_ v pv -> pv `act` Just v))
+      im em
 
 instance (Ord k, Action pv (Maybe v))
       => Action (PatchMap k pv) (Maybe (Map k v)) where
-  act = fmap . act
+  -- | The patch is applied assuming that
+  --   `Nothing` is equivalent to an empty map.
+  act em im = nonEmptyMap $ act em $ fromMaybe mempty im
 
 instance (Ord k, Monoid pv, Eq pv, Transformable pv) => Transformable (PatchMap k pv) where
   -- | This is the internal version @transformWith@ which computes only the
@@ -194,9 +205,15 @@ zipWithNonMemptyMatched f = Map.zipWithMaybeMatched g
   where
     g k x y = nonMempty $ f k x y
 
+nonPred :: (a -> Bool) -> a -> Maybe a
+nonPred pred a | pred a      = Nothing
+               | otherwise   = Just a
+
 nonMempty :: (Monoid a, Eq a) => a -> Maybe a
-nonMempty a | a == mempty = Nothing
-            | otherwise   = Just a
+nonMempty = nonPred (== mempty)
+
+nonEmptyMap :: Ord k => Map k v -> Maybe (Map k v)
+nonEmptyMap = nonPred Map.null
 
 fold2 :: (Ord k, Monoid m) => (k -> a -> b -> m) -> Map k a -> Map k b -> m
 fold2 f m1 m2 = fold $ Map.merge Map.dropMissing Map.dropMissing

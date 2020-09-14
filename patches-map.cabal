@@ -2,9 +2,12 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                patches-map
-version:             0.1.0.0
+version:             0.1.0.1
 synopsis:            TODO Patches (diffs) on vectors: composable, mergeable, and invertible.
-description:         TODO A patch is a collection of modifications (edits) to be made to a sequence of elements. Commonly
+description:         TODO
+                     Based on patch-vector by Liam O'Connor
+                     .
+                     A patch is a collection of modifications (edits) to be made to a sequence of elements. Commonly
                      found in version control systems, patches are also a simple example of a groupoid, supporting (partial) composition
                      and inversion.
                      .
@@ -17,9 +20,9 @@ description:         TODO A patch is a collection of modifications (edits) to be
                      functions, as well as many applications in distributed editing of documents.
 license:             BSD3
 license-file:        LICENSE
-author:              Liam O'Connor
-maintainer:          liamoc@cse.unsw.edu.au
-copyright:           Liam O'Connor, 2015
+author:              Nicolas Pouillard
+maintainer:          nicolas.pouillard@gmail.com
+copyright:           Nicolas Pouillard, 2020
 category:            Data
 build-type:          Simple
 cabal-version:       >=1.10
@@ -36,7 +39,7 @@ library
                      , groups
                      , containers
                      , microlens >= 0.2 && < 0.5
-                     , patches-class
+                     , patches-class >= 0.1.0.1
                      , validity >= 0.8.0.0
   default-language:    Haskell2010
 
@@ -44,7 +47,7 @@ test-suite             doctest-patches-map
   type: exitcode-stdio-1.0
   main-is: doctest.hs
   build-depends:       base >= 4.7 && < 5
-                     , QuickCheck >= 2.7 && < 2.12
+                     , QuickCheck >= 2.7 && < 2.14
                      , patches-map
                      , doctest >= 0.9 && < 0.17
                      , validity
@@ -56,10 +59,10 @@ test-suite             benchmarks-patches-map
   hs-source-dirs: bm, test
   other-modules:       Test.Util
   build-depends:       base >= 4.7 && < 5
-                     , QuickCheck >= 2.7 && < 2.12
-                     , patches-class
+                     , QuickCheck >= 2.7 && < 2.14
+                     , patches-class >= 0.1.0.1
                      , patches-map
-                     , criterion >= 1.1 && < 1.5
+                     , criterion >= 1.1 && < 1.6
                      , containers
                      , validity
   default-language:    Haskell2010
@@ -72,12 +75,12 @@ test-suite             spec-patches-map
                      , Test.Util
                      , Test.UtilSpec
   build-depends:       base >= 4.7 && < 5 
-                     , QuickCheck >= 2.7 && < 2.12
-                     , patches-class
+                     , QuickCheck >= 2.7 && < 2.14
+                     , patches-class >= 0.1.0.1
                      , patches-map
-                     , criterion >= 1.1 && < 1.5
+                     , criterion >= 1.1 && < 1.6
                      , containers
-                     , hspec >= 2.1 && < 2.6
+                     , hspec >= 2.1 && < 2.8
                      , validity
   default-language:    Haskell2010
 
@@ -87,8 +90,8 @@ test-suite             example-patches-map
   hs-source-dirs: example, test
   other-modules:       Test.Util
   build-depends:       base >= 4.7 && < 5
-                     , QuickCheck >= 2.7 && < 2.12
-                     , patches-class
+                     , QuickCheck >= 2.7 && < 2.14
+                     , patches-class >= 0.1.0.1
                      , patches-map
                      , containers
                      , lens

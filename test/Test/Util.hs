@@ -11,7 +11,7 @@ import           Data.Patch.Class (Replace, replace)
 import           Data.Map.Strict.Patch
 import           Data.Validity
 
-type Patch' = Patch Int (Replace (Maybe Int))
+type Patch' = PatchMap Int (Replace (Maybe Int))
 type Doc = Map Int Int
 
 (*?) :: Num a => Maybe a -> Maybe a -> Maybe a
@@ -42,7 +42,7 @@ editsTo m = gen
                else arbitrary
 
 patchesFrom' :: (Show k, Ord k, Arbitrary k, Eq v, Arbitrary v)
-             => Map k v -> Gen (Patch k (Replace (Maybe v)))
+             => Map k v -> Gen (PatchMap k (Replace (Maybe v)))
 patchesFrom' m =
   fst <$> ((fromList <$> listOf (editsTo m)) `suchThat` (isValid . V . snd))
 
