@@ -6,7 +6,11 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
 -- | For day-to-day use, please see "Data.Map.Strict.Patch"
+
+
 module Data.Map.Strict.Patch.Internal where
+
+import Prelude
 import Data.Aeson
 import Data.Group
 import Data.Patch.Class
